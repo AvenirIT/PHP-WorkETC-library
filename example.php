@@ -3,8 +3,8 @@
 header("Content-type: text/plain;charset=UTF-8");
 require 'worketc.php';
 
-// Start the library.
-$worketc = new WorkETC('avenirit');
+// Start the library. (alias.worketc.com)
+$worketc = new WorkETC('alias');
 
 // If the client is not connected, try to connect with an email/password.
 if(!$worketc->client())
