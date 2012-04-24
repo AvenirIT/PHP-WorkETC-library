@@ -7,7 +7,6 @@ class WorkETC
     
     private $client = false;
     private $debug = 0;
-    private $VeetroSession = false;
     private $soap_options = array(
         'soap_version' => SOAP_1_2,
         'encoding' => 'UTF-8',
@@ -15,7 +14,11 @@ class WorkETC
         'trace' => TRUE
     );
     private $alias = false;
-    private $User;
+    private $session_prefix = "WorkETC";
+    
+    // Vars from API are CamelCase
+    private $User = false;
+    private $VeetroSession = false;
     
     public function __construct($alias, $debug = 1)
     {
@@ -29,9 +32,9 @@ class WorkETC
         }
         
         // Get the VeetroSession from the end-users $_SESSION.
-        if($this->VeetroSession == false && isset($_SESSION['VeetroSession']))
+        if($this->VeetroSession == false && isset($_SESSION["{$this->session_prefix}VeetroSession"]))
         {
-            $this->VeetroSession = $_SESSION['VeetroSession'];
+            $this->VeetroSession = $_SESSION["{$this->session_prefix}VeetroSession"];
             $this->error("Found session key in \$_SESSION: {$this->VeetroSession}.");
         }
         
@@ -63,9 +66,9 @@ class WorkETC
             // Save the session key in class and session
             $this->VeetroSession = $response->AuthenticateWebSafeResult->SessionKey;
             $this->User = $response;
-            $_SESSION['VeetroSession'] = $this->VeetroSession;
-            $_SESSION['UserID'] = (string)$response->AuthenticateWebSafeResult->User->EntityID;
-            //die(var_dump($_SESSION['UserID']));
+            $_SESSION["{$this->session_prefix}VeetroSession"] = $this->VeetroSession;
+            $_SESSION["{$this->session_prefix}UserID"] = (string)$response->AuthenticateWebSafeResult->User->EntityID;
+            //die(var_dump($_SESSION["{$this->session_prefix}UserID"]));
             $this->error("Saving new session key {$this->VeetroSession}.");
             
             // Connect to api with VeetroHeader.
@@ -132,4 +135,5 @@ class WorkETC
     }
     
     public function client() { return $this->client; }
+    public function session($var) { return $_SESSION["{$this->session_prefix}{$var}"]; }
 }

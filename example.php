@@ -11,9 +11,8 @@ if(!$worketc->client())
     if(!$worketc->login("user@domain.tld","password"))
         die("Bad Password");
 
-
 // Get the user id.
-$userID = $_SESSION['UserID'];
+$userID = $worketc->session("UserID");
 
 // Get Activities for user (note the spelling error, worketc isn't going to fix this).
 $activities = $worketc->GetActvities();
