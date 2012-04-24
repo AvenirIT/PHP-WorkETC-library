@@ -1,7 +1,7 @@
 <?
 
 header("Content-type: text/plain;charset=UTF-8");
-require 'lib/worketc/worketc.php';
+require 'worketc.php';
 
 // Start the library.
 $worketc = new WorkETC('avenirit');
