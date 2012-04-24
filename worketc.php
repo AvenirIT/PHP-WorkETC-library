@@ -15,6 +15,7 @@ class WorkETC
         'trace' => TRUE
     );
     private $alias = false;
+    private $User;
     
     public function __construct($alias, $debug = 1)
     {
@@ -61,7 +62,10 @@ class WorkETC
         {
             // Save the session key in class and session
             $this->VeetroSession = $response->AuthenticateWebSafeResult->SessionKey;
+            $this->User = $response;
             $_SESSION['VeetroSession'] = $this->VeetroSession;
+            $_SESSION['UserID'] = (string)$response->AuthenticateWebSafeResult->User->EntityID;
+            //die(var_dump($_SESSION['UserID']));
             $this->error("Saving new session key {$this->VeetroSession}.");
             
             // Connect to api with VeetroHeader.
