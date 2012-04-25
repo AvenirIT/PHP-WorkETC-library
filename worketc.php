@@ -1,28 +1,45 @@
 <?
+/**
+ * PHP WorkETC Client Library
+ *
+ * This file contains a PHP library for WorkETC (worketc.com) API.
+ * @author Matt Zandstra <zandstra.matt@gmail.com>
+ * @version 0.1
+ * @package php-worketc
+ */
 
 class WorkETC
 {
+    // Debug levels for error method.
     const DEBUG = 0;
     const ERROR = 1;
     
+    // Options for this library.
+    private $options = array(
+        'alias' => false,
+        'debug' => self::ERROR,
+        'session_prefix' => 'WorkETC_',
+        'url' => 'https://%alias%.worketc.com/xml?wsdl',
+    );
+    
+    // Client is the native PHP SoapClient.
     private $client = false;
-    private $debug = 0;
+    
+    // Soap options array.
     private $soap_options = array(
         'soap_version' => SOAP_1_2,
         'encoding' => 'UTF-8',
         'exceptions' => TRUE,
         'trace' => TRUE
     );
-    private $alias = false;
-    private $session_prefix = "WorkETC";
     
-    // Vars from API are CamelCase
-    private $User = false;
+    // Vars from API are CamelCase.
     private $VeetroSession = false;
     
-    public function __construct($alias, $debug = 1)
+    public function __construct($options=array())
     {
-        $this->debug = $debug;
+        // Import the supplied options.
+        $this->options = array_merge($this->options, $options);
         
         // Start the session if it isn't yet.
         if(session_id() == "")
@@ -31,29 +48,28 @@ class WorkETC
             $this->error("Started Session.");
         }
         
-        // Get the VeetroSession from the end-users $_SESSION.
-        if($this->VeetroSession == false && isset($_SESSION["{$this->session_prefix}VeetroSession"]))
+        // Get the VeetroSession from $_SESSION.
+        if($this->VeetroSession == false && $this->session('VeetroSession'))
         {
-            $this->VeetroSession = $_SESSION["{$this->session_prefix}VeetroSession"];
-            $this->error("Found session key in \$_SESSION: {$this->VeetroSession}.");
+            $this->VeetroSession = $this->session('VeetroSession');
+            $this->error("Found session key: {$this->VeetroSession}.");
         }
-        
-        // Save the WorkETC Site
-        $this->alias = $alias;
         
         // Connect with veetro session key if available
         if($this->VeetroSession != false)
             $this->connect();
     }
     
-    public function login($email, $pass, $alias = false)
+    public function login($email, $pass, $options=array())
     {
-        // Option to switch WorkETC site.
-        if($alias) $this->alias = $alias;
-        $this->error("Logging in as {$email} to {$this->alias}.");
+        // Import the supplied options.
+        $this->options = array_merge($this->options, $options);
+        
+        // Debug
+        $this->error("Logging in as {$email} to {$this->options['alias']}.");
         
         // Authenticating and save session key
-        $authClient = new SoapClient("https://{$this->alias}.worketc.com/xml?wsdl", $this->soap_options);
+        $authClient = new SoapClient($this->getUrl(), $this->soap_options);
         $response = $authClient->AuthenticateWebSafe(array('email'=>$email, 'pass'=>$pass));
         
         // Bad login case
@@ -66,9 +82,9 @@ class WorkETC
             // Save the session key in class and session
             $this->VeetroSession = $response->AuthenticateWebSafeResult->SessionKey;
             $this->User = $response;
-            $_SESSION["{$this->session_prefix}VeetroSession"] = $this->VeetroSession;
-            $_SESSION["{$this->session_prefix}UserID"] = (string)$response->AuthenticateWebSafeResult->User->EntityID;
-            //die(var_dump($_SESSION["{$this->session_prefix}UserID"]));
+            $this->session('VeetroSession', $this->VeetroSession);
+            $this->session('UserID', (string)$response->AuthenticateWebSafeResult->User->EntityID);
+            $this->session('User', $response->AuthenticateWebSafeResult->User);
             $this->error("Saving new session key {$this->VeetroSession}.");
             
             // Connect to api with VeetroHeader.
@@ -98,7 +114,7 @@ class WorkETC
         
         // Try to connect.
         try {
-            $this->client = new SoapClient("https://{$this->alias}.worketc.com/xml?wsdl", $this->soap_options);
+            $this->client = new SoapClient($this->getUrl(), $this->soap_options);
         }
         catch (SoapFault $fault) {
             die($fault->getMessage());
@@ -131,10 +147,20 @@ class WorkETC
     
     private function error($message, $level = self::DEBUG)
     {
-        if($level >= $this->debug)
+        if($level >= $this->options['debug'])
             echo "{$message}\n";
     }
     
-    public function client() { return $this->client; }
-    public function session($var) { return $_SESSION["{$this->session_prefix}{$var}"]; }
+    public function getClient() { return $this->client; }
+    public function getUrl() { return str_replace("%alias%", $this->options['alias'], $this->options['url']); }
+    
+    // Either gets or sets a session var with the prefix.
+    public function session($var, $value=false) {
+        if($value!==false)
+            $_SESSION["{$this->options['session_prefix']}{$var}"] = $value;
+        else if(isset($_SESSION["{$this->options['session_prefix']}{$var}"]))
+            return $_SESSION["{$this->options['session_prefix']}{$var}"];
+        else
+            return false;
+    }
 }
