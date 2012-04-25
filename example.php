@@ -3,6 +3,7 @@
 header("Content-type: text/plain;charset=UTF-8");
 require 'worketc.php';
 
+// Change these.
 $alias = "alias";
 $email = "user@domain.tld";
 $pass = "password";
