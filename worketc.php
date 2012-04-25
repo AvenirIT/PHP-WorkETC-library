@@ -124,7 +124,8 @@ class WorkETC
         catch (SoapFault $fault)
         {
             $this->error($fault->getMessage(), self::ERROR);
-            die(print_r($fault, true));
+            $this->error(print_r($fault,1));
+            die();
         }
     }
     
