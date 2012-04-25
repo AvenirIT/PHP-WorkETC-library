@@ -50,6 +50,7 @@ Any of these options can be provied to the constructor or the login function.
 *   `alias` - Which worketc site to connect to. `alias.worketc.com`.
 *   `debug` - Set this to either `WorkETC::DEBUG` or `WorkETC::ERROR`. Defaults to `WorkETC::ERROR`.
 *   `session_prefix` - String to prefix session variables with. Default is `WorkETC_`.
+*   `header_method` - How to provide the VeetroSession header. If you are windows, change this to `WorkETC::HEADER_INI`. Default is `WorkETC::HEADER_STREAM`.
 
 
 

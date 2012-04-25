@@ -13,6 +13,11 @@ class WorkETC
     // Debug levels for error method.
     const DEBUG = 0;
     const ERROR = 1;
+    const FATAL = 2;
+    
+    // Methods of sending HTTP header
+    const HEADER_STREAM = 0;
+    const HEADER_INI = 1;
     
     // Options for this library.
     private $options = array(
@@ -20,6 +25,7 @@ class WorkETC
         'debug' => self::ERROR,
         'session_prefix' => 'WorkETC_',
         'url' => 'https://%alias%.worketc.com/xml?wsdl',
+        'header_method' => self::HEADER_STREAM,
     );
     
     // Client is the native PHP SoapClient.
@@ -101,16 +107,29 @@ class WorkETC
         }
     }
     
+    // Connects to the service providing a header.
     private function connect()
     {
         $this->error("Connecting with VeetroSession: {$this->VeetroSession}.");
-        // Add the VeetroSession HTTP Header
-        // http://stackoverflow.com/questions/3541690/modifying-php-soap-code-to-add-http-header-in-all-requests
-        $this->soap_options['stream_context'] = stream_context_create(array(
-            'http' => array(
-                'header' => "VeetroSession: {$this->VeetroSession}"
-            )
-        ));
+        
+        if($this->options['header_method'] === self::HEADER_STREAM)
+        {
+            // Add the VeetroSession HTTP Header via stream context (better).
+            // http://stackoverflow.com/questions/3541690/modifying-php-soap-code-to-add-http-header-in-all-requests
+            $this->soap_options['stream_context'] = stream_context_create(array(
+                'http' => array(
+                    'header' => "VeetroSession: {$this->VeetroSession}"
+                )
+            ));
+        }   
+        else if($this->options['header_method'] === self::HEADER_INI)
+        {
+            // Add the VeetroSession HTTP Header via ini_set for windows (specifically tested on xampp).
+            // http://stackoverflow.com/questions/6179138/soapclient-set-custom-http-header
+            ini_set('user_agent', 'PHP-SOAP/'.PHP_VERSION."\r\nVeetroSession: {$this->VeetroSession}");
+        }
+        else
+            $this->error("Unknown header method.", self::FATAL);
         
         // Try to connect.
         try {
@@ -121,6 +140,7 @@ class WorkETC
         }
     }
     
+    // Directly calls worketc methods.
     public function __call($name, $arguments)
     {
         if($this->client == false)
@@ -145,12 +165,17 @@ class WorkETC
         }
     }
     
+    // Some debug and error help.
     private function error($message, $level = self::DEBUG)
     {
         if($level >= $this->options['debug'])
             echo "{$message}\n";
+        
+        if($level >= self::FATAL)
+            die();
     }
     
+    // Additional get methods.
     public function getClient() { return $this->client; }
     public function getUrl() { return str_replace("%alias%", $this->options['alias'], $this->options['url']); }
     
