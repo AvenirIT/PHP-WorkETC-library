@@ -26,7 +26,7 @@ Installing & Using
     
         <? print_r($worketc->GetSupportCasesByOwner(array(
             'EntityID' => 1,        // 1 is usually the first user
-            'status' => 'Open',     // check the [docs](http://admin.worketc.com/xml) for other statuses
+            'status' => 'Open',     // check the docs for other statuses
             'top' => 0              // Not documented well. It means how many to return. 0 is all.
         ))); ?>
     
