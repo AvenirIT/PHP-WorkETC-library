@@ -188,4 +188,11 @@ class WorkETC
         else
             return false;
     }
+	
+	// Helpful function to convert timezone.
+	static function date($target="CST", $time=false, $format="Y-m-d\TH:i:s", $from="UTC") {
+		$time = new DateTime($time, new DateTimeZone($from));
+		$time->setTimezone(new DateTimeZone($target));
+		return $time->format($format);
+	}
 }
