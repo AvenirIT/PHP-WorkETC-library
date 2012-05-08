@@ -44,7 +44,7 @@ Installing & Using
 
 7.  WorkETC does not convert the timezone for you. We have provided a static method to help with this.
 	
-	`<?= WorkETC::date($target_timezone, $worketc_time, $output_format, $from); ?>
+	`<?= WorkETC::date($target_timezone, $worketc_time, $output_format, $from); ?>`
 	
 	Only the first argument is required. If no time is provided, the current time will be used. If no output format is provided, we will output in worketc format (`00-00-00T00:00:00`). If no from format is provided, we will assume UTC (WorkETC default).
 	
